@@ -1,0 +1,42 @@
+<html>
+    <meta charset="UTF-8">
+    <body>
+
+        <div>
+            <input type="button" value="登录" onclick="login()">
+        </div>
+        <div>
+            <input type="button" value="调用flutter" onclick="callFlutter()">
+        </div>
+        <div>
+            <input type="button" value="通过拦截调用flutter" onclick="callFlutterNavigator()">
+        </div>
+        <div id="box">
+        </div>
+
+        <script>
+
+            //登录
+            function login(){
+                loginJs.postMessage("登录");
+            }
+
+            function callFlutter(){
+               fromJs.postMessage("来之js的调用");
+            }
+
+            //调用flutter方法通过拦截获取数据
+            function callFlutterNavigator(){
+                document.location = "js://webview?name=zq&value=123";
+            }
+
+            //flutter调用
+            function fromFlutter(msg){
+                var box = document.getElementById("box");
+                box.innerHTML = msg;
+                return "js已经收到值";
+            }
+
+        </script>
+    </body>
+</html>
