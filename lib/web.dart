@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_shop/login.dart';
+import 'package:flutter_shop/main.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/services.dart';
 
@@ -81,7 +81,7 @@ class _WebViewState extends State<WebViewPage>{
         child: Builder(builder: (BuildContext context){
           return WebView(
             //initialUrl: 'https://xy100.cn/mobile-preview?url=aHR0cHM6Ly9hcHAteXVuZGlhbi54eTEwMC5jbi9tL3VzZXJjYXNlLWluZGV4O3h5dGVzdD9fbW9iaWxlX3ByZXZpZXc9dHJ1ZQ%3D%3D',
-            initialUrl: '',
+            //initialUrl: '',
             javascriptMode: JavascriptMode.unrestricted,
             javascriptChannels: <JavascriptChannel>[
               _javascriptChannel(context),
