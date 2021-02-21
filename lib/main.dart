@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
@@ -7,11 +8,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_shop/ProgressDialog.dart';
+import 'package:flutter_shop/ValidateUtils.dart';
 import 'package:flutter_shop/api.dart';
+import 'package:flutter_shop/register.dart';
 import 'package:flutter_shop/register_data.dart';
 import 'package:flutter_shop/urls.dart';
 import 'package:flutter_shop/xyweb.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flutter_shop/NetUtils.dart';
 import 'dart:io';
@@ -48,7 +52,10 @@ class _LoginPageState extends State<LoginPage>{
   FocusNode _focusNodeUserName = new FocusNode();
   FocusNode _focusNodePassWord = new FocusNode();
 
+  FocusNode _foucsNodeVerify = new FocusNode();
   TextEditingController _userNameController = new TextEditingController();
+  TextEditingController _verifyController = new TextEditingController();
+
 
   //表单状态
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -56,11 +63,13 @@ class _LoginPageState extends State<LoginPage>{
   var _username = ''; //用户名
   var _password = ''; //密码
 
+  String phone = ""; //电话号码
+  String verify = ""; //验证码
+
   bool isBtnEnabled = true; //发送验证码按钮的状态
   String btnText="发送验证码";
   int count = 60; //倒计时时间
   Timer timer;  //倒计时的计时器
-  TextEditingController mController = TextEditingController();
 
   @override
   void initState() {
@@ -68,7 +77,12 @@ class _LoginPageState extends State<LoginPage>{
     _focusNodeUserName.addListener(_focusNodeListener);
     _focusNodePassWord.addListener(_focusNodeListener);
     _userNameController.addListener(() {
-      print(_userNameController.text);
+      phone = _userNameController.text.toString();
+      print(phone);
+    });
+    _verifyController.addListener(() {
+      verify = _verifyController.text.toString();
+      print("$verify");
     });
     initLogin();
     super.initState();
@@ -78,9 +92,11 @@ class _LoginPageState extends State<LoginPage>{
   void dispose() {
     _focusNodeUserName.removeListener(_focusNodeListener);
     _focusNodePassWord.removeListener(_focusNodeListener);
-    timer.cancel();
-    timer = null;
-    mController.dispose();
+    _foucsNodeVerify.removeListener(_focusNodeListener);
+    if(timer != null){
+      timer.cancel();
+      timer = null;
+    }
     super.dispose();
   }
 
@@ -103,17 +119,6 @@ class _LoginPageState extends State<LoginPage>{
     if(_focusNodePassWord.hasFocus){
       _focusNodeUserName.unfocus();
     }
-  }
-  
-  String validateUserName(value){
-    //正则表达式匹配手机号
-    RegExp exp = RegExp(r'^((13[0-9])|(14[0-9])|(15[0-9])|(16[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))\d{8}$');
-    if(value.isEmpty){
-      return "用户名不能为空";
-    }else if(!exp.hasMatch(value)){
-      return "请输入正确的手机号";
-    }
-    return null;
   }
 
   String validatePassword(value){
@@ -151,7 +156,7 @@ class _LoginPageState extends State<LoginPage>{
                   prefixIcon: Icon(Icons.person),
                 ),
                 //验证用户名
-                validator: validateUserName,
+                validator: ValidateUtils.validatePhone,
                 //保存数据
                 onSaved: (String value){
                   _username = value;
@@ -242,7 +247,8 @@ class _LoginPageState extends State<LoginPage>{
                       onSaved: (value){
 
                       },
-                      controller: mController,
+                      controller: _verifyController,
+                      focusNode: _foucsNodeVerify,
                       textAlign: TextAlign.left,
                       inputFormatters: [WhitelistingTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(6)],
                       decoration: InputDecoration(
@@ -268,6 +274,12 @@ class _LoginPageState extends State<LoginPage>{
                     splashColor: isBtnEnabled?Colors.white.withOpacity(0.1):Colors.transparent,
                     shape:StadiumBorder(side:BorderSide.none),
                     onPressed: (){
+                      //判断是否有输入手机号
+                      String validate = ValidateUtils.validatePhone(phone);
+                      if(validate.isNotEmpty){
+                        Fluttertoast.showToast(msg: validate);
+                        return;
+                      }
                       setState(() {
                         sendVerifyCodeClickListener();
                       });
@@ -282,6 +294,35 @@ class _LoginPageState extends State<LoginPage>{
       ),
     );
 
+    //注册提示
+    Widget registerTextArea = new Container(
+      margin: EdgeInsets.only(left: 20,right: 20),
+      height: 20,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: "还没有账号？",
+              style: TextStyle(fontSize: 13,color:Colors.grey),
+            ),
+            TextSpan(
+              text: "去注册",
+              style: TextStyle(fontSize: 13,color: Colors.blue),
+              //设置点击事件
+              recognizer: TapGestureRecognizer()
+                ..onTap = (){
+                  //跳转到注册页面
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => RegisterPage()
+                  ));
+                },
+            )
+          ]
+        )
+      ),
+
+    );
+
     //登录按钮
     Widget loginButtonArea = new Container(
       margin: EdgeInsets.only(left:20,right:20),
@@ -292,6 +333,13 @@ class _LoginPageState extends State<LoginPage>{
         //设置圆角
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
         onPressed: (){
+          //登录判断是否输入手机号和验证码
+          if(phone.isEmpty || verify.isEmpty){
+            Fluttertoast.showToast(
+              msg: "请输入正确的手机号或验证码"
+            );
+            return;
+          }
           //点击登录回收键盘，解除焦点
           _focusNodeUserName.unfocus();
           _focusNodePassWord.unfocus();
@@ -348,10 +396,24 @@ class _LoginPageState extends State<LoginPage>{
         },
         child: new ListView(
           children: [
-            new SizedBox(height: 100,),
+            new SizedBox(
+              height: 20,
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                "星 猿",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            new SizedBox(height: 80,),
             inputTextArea,
             verifyCodeArea,
-            new SizedBox(height: 50,),
+            new SizedBox(height: 30,),
+            registerTextArea,
+            new SizedBox(height: 10,),
             loginButtonArea,
           ],
         ),

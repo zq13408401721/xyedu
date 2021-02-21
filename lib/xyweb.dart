@@ -70,10 +70,11 @@ class _WebViewState extends State<WebViewPage>{
           body: SafeArea(
             child: Builder(builder: (BuildContext context) {
               return WebView(
-                initialUrl: 'https://xyedu.app-yundian.xy100.cn/m/usercase-index?_mobile_preview=true',
+                initialUrl: 'https://xyedu.app-yundian.xy100.cn/m/usercase-index',
                 onWebViewCreated: (WebViewController webviewController){
                   _webViewController = webviewController;
                 },
+                javascriptMode: JavascriptMode.unrestricted,
                 navigationDelegate: (NavigationRequest request) {
                   if (request.url.startsWith('js://webview')) {
                     print('blocking navigation to $request');
