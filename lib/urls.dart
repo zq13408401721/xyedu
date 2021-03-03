@@ -2,6 +2,7 @@
 import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_shop/NetUtils.dart';
 
 
 class Urls{
@@ -30,6 +31,19 @@ class Urls{
    * post网络请求
    */
   static Future post(String api,Function callback,[dynamic params,Function errorCallback]) async{
+    return _request(Urls.XY_URL+api, callback,method: POST,params: params,errorCallback: errorCallback);
+  }
+
+  /**
+   * 带有验证的请求接口
+   */
+  static Future postX(String api,Function callback,[dynamic params,Function errorCallback]) async{
+    int timestamp = NetUtils.currentTimeMillis();
+    String token = NetUtils.md5Hex(Urls.Appsecret+timestamp.toString());
+    params["appid"] = appid;
+    params["appsecret"] = Appsecret;
+    params["timestamp"] = timestamp;
+    params["token"] = token;
     return _request(Urls.XY_URL+api, callback,method: POST,params: params,errorCallback: errorCallback);
   }
 

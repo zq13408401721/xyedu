@@ -10,8 +10,16 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import 'ProgressDialog.dart';
 
+/*void main(){
+  runApp(MaterialApp(
+    home: WebViewPage(),
+    debugShowCheckedModeBanner: false,
+  ));
+}*/
 
-
+/**
+ * H5显示的主页面
+ */
 class WebViewPage extends StatefulWidget{
   @override
   State<StatefulWidget> createState() {
